@@ -32,6 +32,20 @@ public:
   KalmanFilter ekf_;
 
 private:
+
+  inline void UpdateProcessNoiseCovMatrix(const float& dt, MatrixXd& covm) {
+    float dt_2 = dt * dt;
+    float dt_3 = dt_2 * dt;
+    float dt_4 = dt_3 * dt;
+    float noise_ax = 9;
+    float noise_ay = 9;
+    //set the process covariance matrix Q
+    covm << dt_4 / 4 * noise_ax, 0, dt_3 / 2 * noise_ax, 0,
+            0, dt_4 / 4 * noise_ay, 0, dt_3 / 2 * noise_ay,
+            dt_3 / 2 * noise_ax, 0, dt_2 * noise_ax, 0,
+            0, dt_3 / 2 * noise_ay, 0, dt_2 * noise_ay;
+  };
+
   // check whether the tracking toolbox was initialized or not (first measurement)
   bool is_initialized_;
 

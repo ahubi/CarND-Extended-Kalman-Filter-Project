@@ -63,6 +63,13 @@ public:
    * @param z The measurement at k+1
    */
   void UpdateEKF(const Eigen::VectorXd &z);
+private:
+  /**
+   * map from cartesian to polar coodrdinates
+   * @param x_ state vector in cartesian coordinates
+   * @return a vector in polar coordinates
+   */
+  const Eigen::VectorXd h(const Eigen::VectorXd& x);
 
 };
 
