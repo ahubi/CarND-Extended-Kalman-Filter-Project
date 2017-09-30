@@ -28,28 +28,16 @@ void KalmanFilter::Predict() {
 }
 
 void KalmanFilter::Update(const VectorXd &z) {
-  VectorXd z_pred = H_ * x_;
-  VectorXd y = z - z_pred;
-  MatrixXd Ht = H_.transpose();
-  MatrixXd S = H_ * P_ * Ht + R_;
-  MatrixXd Si = S.inverse();
-  MatrixXd PHt = P_ * Ht;
-  MatrixXd K = PHt * Si;
-
-  //new estimate
-  x_ = x_ + (K * y);
-  long x_size = x_.size();
-  MatrixXd I = MatrixXd::Identity(x_size, x_size);
-  P_ = (I - K * H_) * P_;
+  VectorXd y = z - H_ * x_;
+  EstimatexP(y);
 }
 
 void KalmanFilter::UpdateEKF(const VectorXd &z) {
-  /**
-  TODO:
-    * update the state by using Extended Kalman Filter equations
-  */
   VectorXd y = z - h(x_); //for EKF use h(x')
+  EstimatexP(y);
+}
 
+void KalmanFilter::EstimatexP(const Eigen::VectorXd& y){
   MatrixXd Ht = H_.transpose();
   MatrixXd S = H_ * P_ * Ht + R_;
   MatrixXd Si = S.inverse();
@@ -75,7 +63,7 @@ const VectorXd KalmanFilter::h(const VectorXd& x){
 
   //check division by zero
   if (fabs(c1) < 0.0001) {
-    cout << "h() - Error - Division by Zero x=" << x << endl;
+    cout << __func__ << "Error - Division by Zero x=" << x << endl;
   }else{
     float c2 = sqrt(c1);
     float c3 = px * vx + py * vy;

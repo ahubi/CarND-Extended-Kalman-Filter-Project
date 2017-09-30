@@ -92,8 +92,10 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
       float ro = measurement_pack.raw_measurements_(0);
       float theta = measurement_pack.raw_measurements_(1);
       float ro_dot = measurement_pack.raw_measurements_(2);
-      ekf_.x_ << ro, theta, 0, 0;
-      ekf_.Init(ekf_.x_, ekf_.P_, ekf_.F_, Hj_, R_radar_, ekf_.Q_);
+      float px = ro * cos(theta);
+      float py = ro * sin(theta);
+      ekf_.x_ << px, py, 0, 0;
+      //ekf_.Init(ekf_.x_, ekf_.P_, ekf_.F_, Hj_, R_radar_, ekf_.Q_);
     }
     else if (measurement_pack.sensor_type_ == MeasurementPackage::LASER) {
       /**
@@ -102,7 +104,7 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
       float px = measurement_pack.raw_measurements_(0);
       float py = measurement_pack.raw_measurements_(1);
       ekf_.x_ << px, py, 0, 0;
-      ekf_.Init(ekf_.x_, ekf_.P_, ekf_.F_, H_laser_, R_laser_, ekf_.Q_);
+      //ekf_.Init(ekf_.x_, ekf_.P_, ekf_.F_, H_laser_, R_laser_, ekf_.Q_);
     }
 
     previous_timestamp_ = measurement_pack.timestamp_;

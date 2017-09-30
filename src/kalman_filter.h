@@ -70,6 +70,11 @@ private:
    * @return a vector in polar coordinates
    */
   const Eigen::VectorXd h(const Eigen::VectorXd& x);
+  /**
+   * update x and P
+   * @param y to use for update
+   */
+  void EstimatexP(const Eigen::VectorXd& y);
 
 };
 
