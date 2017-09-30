@@ -4,6 +4,9 @@
 using Eigen::MatrixXd;
 using Eigen::VectorXd;
 using namespace std;
+
+const float  PI_F=3.14159265358979f;
+
 KalmanFilter::KalmanFilter() {}
 
 KalmanFilter::~KalmanFilter() {}
@@ -76,7 +79,7 @@ const VectorXd KalmanFilter::h(const VectorXd& x){
   }else{
     float c2 = sqrt(c1);
     float c3 = px * vx + py * vy;
-    res(0) = sqrt(c2);
+    res(0) = c2;
     res(1) = atan2f(py, px);
     res(2) = c3 / c2;
   }
