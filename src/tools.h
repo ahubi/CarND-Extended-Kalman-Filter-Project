@@ -28,6 +28,7 @@ public:
   * A helper method to calculate Jacobians.
   */
   MatrixXd CalculateJacobian(const VectorXd& x_state);
+  void UpdateProcessNoise(const float& dt, float noise_ax, float noise_ay, MatrixXd& covm);
 };
 
 #endif /* TOOLS_H_ */

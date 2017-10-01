@@ -71,3 +71,14 @@ MatrixXd Tools::CalculateJacobian(const VectorXd& x_state) {
 
   return Hj;
 }
+void Tools::UpdateProcessNoise(const float& dt, const float ax, const float ay, MatrixXd& P) {
+  float dt_2 = dt * dt;
+  float dt_3 = dt_2 * dt;
+  float dt_4 = dt_3 * dt;
+  //set the process covariance matrix Q
+  P << dt_4 / 4 * ax, 0, dt_3 / 2 * ax, 0,
+      0, dt_4 / 4 * ay, 0, dt_3 / 2 * ay,
+      dt_3 / 2 * ax, 0, dt_2 * ax, 0,
+      0, dt_3 / 2 * ay, 0, dt_2 * ay;
+}
+

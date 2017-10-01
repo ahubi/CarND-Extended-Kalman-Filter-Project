@@ -5,8 +5,6 @@ using Eigen::MatrixXd;
 using Eigen::VectorXd;
 using namespace std;
 
-const float  PI_F=3.14159265358979f;
-
 KalmanFilter::KalmanFilter() {}
 
 KalmanFilter::~KalmanFilter() {}
@@ -29,15 +27,24 @@ void KalmanFilter::Predict() {
 
 void KalmanFilter::Update(const VectorXd &z) {
   VectorXd y = z - H_ * x_;
-  EstimatexP(y);
+  Estimate_x_P(y);
 }
 
 void KalmanFilter::UpdateEKF(const VectorXd &z) {
-  VectorXd y = z - h(x_); //for EKF use h(x')
-  EstimatexP(y);
+  //for radar use h(x')
+  VectorXd y = z - h();
+
+  //Normalize angle
+  if(y(1) > PI_)
+    y(1) -= 2*PI_;
+  if(y(1) < -PI_)
+    y(1) += 2*PI_;
+
+  //estimate x and P
+  Estimate_x_P(y);
 }
 
-void KalmanFilter::EstimatexP(const Eigen::VectorXd& y){
+void KalmanFilter::Estimate_x_P(const Eigen::VectorXd& y){
   MatrixXd Ht = H_.transpose();
   MatrixXd S = H_ * P_ * Ht + R_;
   MatrixXd Si = S.inverse();
@@ -51,24 +58,24 @@ void KalmanFilter::EstimatexP(const Eigen::VectorXd& y){
   P_ = (I - K * H_) * P_;
 }
 
-const VectorXd KalmanFilter::h(const VectorXd& x){
+const VectorXd KalmanFilter::h(){
   VectorXd res = VectorXd(3);
-  float px = x(0);
-  float py = x(1);
-  float vx = x(2);
-  float vy = x(3);
+  float px = x_(0);
+  float py = x_(1);
+  float vx = x_(2);
+  float vy = x_(3);
 
-  //pre-compute a set of terms to avoid repeated calculation
+  //pre-compute x^2 + y^2
   float c1 = px * px + py * py;
 
   //check division by zero
   if (fabs(c1) < 0.0001) {
-    cout << __func__ << "Error - Division by Zero x=" << x << endl;
+    cout << __func__ << "Error - Division by Zero x=" << x_ << endl;
   }else{
     float c2 = sqrt(c1);
     float c3 = px * vx + py * vy;
     res(0) = c2;
-    res(1) = atan2f(py, px);
+    res(1) = atan2(py,px);
     res(2) = c3 / c2;
   }
   return res;

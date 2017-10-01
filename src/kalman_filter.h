@@ -23,6 +23,9 @@ public:
   // measurement covariance matrix
   Eigen::MatrixXd R_;
 
+  float PI_;
+
+
   /**
    * Constructor
    */
@@ -66,15 +69,14 @@ public:
 private:
   /**
    * map from cartesian to polar coodrdinates
-   * @param x_ state vector in cartesian coordinates
    * @return a vector in polar coordinates
    */
-  const Eigen::VectorXd h(const Eigen::VectorXd& x);
+  const Eigen::VectorXd h();
   /**
    * update x and P
    * @param y to use for update
    */
-  void EstimatexP(const Eigen::VectorXd& y);
+  void Estimate_x_P(const Eigen::VectorXd& y);
 
 };
 

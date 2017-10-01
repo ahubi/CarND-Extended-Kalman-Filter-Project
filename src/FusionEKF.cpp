@@ -53,6 +53,14 @@ FusionEKF::FusionEKF() {
              0, 1, 0, 1,
              0, 0, 1, 0,
              0, 0, 0, 1;
+
+  //state covariance matrix P
+  ekf_.P_ = MatrixXd(4, 4);
+  ekf_.P_ << 1, 0, 0, 0,
+             0, 1, 0, 0,
+             0, 0, 1000, 0,
+             0, 0, 0, 1000;
+  ekf_.PI_ = atan(1)*4;
 }
 
 /**
@@ -68,22 +76,13 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
    ****************************************************************************/
   if (!is_initialized_) {
     /**
-    TODO:
-      * Initialize the state ekf_.x_ with the first measurement.
-      * Create the covariance matrix.
-      * Remember: you'll need to convert radar from polar to cartesian coordinates.
-    */
+     * Initialize the state ekf_.x_ with the first measurement.
+     * Create the covariance matrix.
+     * Remember: you'll need to convert radar from polar to cartesian coordinates.
+     */
     // first measurement
     cout << "EKF: " << endl;
     ekf_.x_ = VectorXd(4);
-    ekf_.x_ << 1, 1, 1, 1;
-
-    //state covariance matrix P
-    ekf_.P_ = MatrixXd(4, 4);
-    ekf_.P_ << 1, 0, 0, 0,
-               0, 1, 0, 0,
-               0, 0, 1000, 0,
-               0, 0, 0, 1000;
 
     if (measurement_pack.sensor_type_ == MeasurementPackage::RADAR) {
       /**
@@ -91,11 +90,9 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
        */
       float ro = measurement_pack.raw_measurements_(0);
       float theta = measurement_pack.raw_measurements_(1);
-      float ro_dot = measurement_pack.raw_measurements_(2);
       float px = ro * cos(theta);
       float py = ro * sin(theta);
       ekf_.x_ << px, py, 0, 0;
-      //ekf_.Init(ekf_.x_, ekf_.P_, ekf_.F_, Hj_, R_radar_, ekf_.Q_);
     }
     else if (measurement_pack.sensor_type_ == MeasurementPackage::LASER) {
       /**
@@ -104,7 +101,6 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
       float px = measurement_pack.raw_measurements_(0);
       float py = measurement_pack.raw_measurements_(1);
       ekf_.x_ << px, py, 0, 0;
-      //ekf_.Init(ekf_.x_, ekf_.P_, ekf_.F_, H_laser_, R_laser_, ekf_.Q_);
     }
 
     previous_timestamp_ = measurement_pack.timestamp_;
@@ -122,16 +118,17 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
    ****************************************************************************/
 
   /**
-   TODO:
-     * Update the state transition matrix F according to the new elapsed time.
+   * Update the state transition matrix F according to the new elapsed time.
       - Time is measured in seconds.
-     * Update the process noise covariance matrix.
-     * Use noise_ax = 9 and noise_ay = 9 for your Q matrix.
+   * Update the process noise covariance matrix.
+   * Use noise_ax = 9 and noise_ay = 9 for your Q matrix.
    */
   //Modify the F matrix so that the time is integrated
   ekf_.F_(0, 2) = dt;
   ekf_.F_(1, 3) = dt;
-  UpdateProcessNoiseCovMatrix(dt, ekf_.Q_);
+
+  //Update process noise covariance matrix
+  tools.UpdateProcessNoise(dt, 9, 9, ekf_.Q_);
 
   ekf_.Predict();
 
@@ -140,24 +137,22 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
    ****************************************************************************/
 
   /**
-   TODO:
-     * Use the sensor type to perform the update step.
-     * Update the state and covariance matrices.
+   * Use the sensor type to perform the update step.
+   * Update the state and covariance matrices.
    */
-
+  Eigen::VectorXd z = measurement_pack.raw_measurements_;
   if (measurement_pack.sensor_type_ == MeasurementPackage::RADAR) {
-    // Radar updates
-    ekf_.R_ = R_radar_;
     ekf_.H_ = tools.CalculateJacobian(ekf_.x_);
-    ekf_.UpdateEKF(measurement_pack.raw_measurements_);
+    ekf_.R_ = R_radar_;
+    ekf_.UpdateEKF(z);
   } else {
     // Laser updates
     ekf_.R_ = R_laser_;
     ekf_.H_ = H_laser_;
-    ekf_.Update(measurement_pack.raw_measurements_);
+    ekf_.Update(z);
   }
 
   // print the output
-  cout << "x_ = " << ekf_.x_ << endl;
-  cout << "P_ = " << ekf_.P_ << endl;
+  //cout << "x_ = " << ekf_.x_ << endl;
+  //cout << "P_ = " << ekf_.P_ << endl;
 }
